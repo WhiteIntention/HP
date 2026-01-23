@@ -1,14 +1,14 @@
-# Assignment 3 — Task 1 (CUDA): Element-wise multiply (Global vs Shared)
+# Assignment 3 - Task 1 (CUDA): Element-wise multiply (Global vs Shared)
 
 В этом задании реализована программа на **CUDA C++** для поэлементной обработки массива: умножение каждого элемента на константу `k`. Реализованы **две версии**:
-1) **Только глобальная память (global memory)** — каждый поток читает `in[idx]` из global и записывает `out[idx]` в global.  
-2) **С использованием разделяемой памяти (shared memory)** — каждый блок загружает элементы из global в shared, выполняет умножение в shared и записывает результат обратно в global.
+1) **Только глобальная память (global memory)** - каждый поток читает `in[idx]` из global и записывает `out[idx]` в global.  
+2) **С использованием разделяемой памяти (shared memory)** - каждый блок загружает элементы из global в shared, выполняет умножение в shared и записывает результат обратно в global.
 
 Цель: сравнить время выполнения обеих реализаций для массива размера **N = 1 000 000**.
 
 ## Реализация
 
-### Версия 1 — Global memory
+### Версия 1 - Global memory
 Каждый поток выполняет:
 - чтение `in[idx]` из global memory,
 - умножение на `k`,
@@ -17,7 +17,7 @@
 Kernel:
 - `mul_global(const float* in, float* out, float k, int n)`
 
-### Версия 2 — Shared memory
+### Версия 2 - Shared memory
 Внутри каждого блока:
 - загрузка `in[idx]` в `shared`,
 - умножение элемента `shared[tid] *= k`,
