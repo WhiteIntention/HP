@@ -1,4 +1,3 @@
-%%writefile ass3_task3.cu
 #include <cuda_runtime.h>
 #include <iostream>
 #include <vector>
