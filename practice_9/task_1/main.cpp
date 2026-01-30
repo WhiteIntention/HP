@@ -48,9 +48,17 @@ int main(int argc, char** argv)
 
     // Чтобы каждый процесс знал свой размер, разошлём counts
     int local_n = 0;
+    // Таймер выполнения (Scatterv + локальные вычисления + Reduce)
+    double start_time = 0.0;
+    double end_time = 0.0;
+
     MPI_Scatter(counts.data(), 1, MPI_INT, &local_n, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     std::vector<double> local((size_t)local_n);
+    
+    // старт таймера
+    MPI_Barrier(MPI_COMM_WORLD);
+    start_time = MPI_Wtime();
 
     // Scatterv: каждый процесс получает свою часть
     MPI_Scatterv(
@@ -82,6 +90,9 @@ int main(int argc, char** argv)
     MPI_Reduce(&local_sum, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
     MPI_Reduce(&local_sum_sq, &global_sum_sq, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+    end_time = MPI_Wtime();
+
     if (rank == 0) {
         double mean = (N > 0) ? (global_sum / (double)N) : 0.0;
 
@@ -99,6 +110,10 @@ int main(int argc, char** argv)
         std::cout << "MPI processes = " << size << "\n";
         std::cout << "Mean = " << mean << "\n";
         std::cout << "StdDev = " << stddev << "\n";
+        std::cout << "Execution time: "
+          << (end_time - start_time)
+          << " seconds\n";
+
     }
 
     MPI_Finalize();
