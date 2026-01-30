@@ -1,4 +1,3 @@
-%%writefile 9_2.cpp
 #include <mpi.h>
 #include <iostream>
 #include <vector>
