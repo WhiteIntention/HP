@@ -65,6 +65,9 @@ int main(int argc, char** argv)
         rows_per_proc * N, MPI_INT,
         0, MPI_COMM_WORLD
     );
+    // синхронизация перед замером
+    MPI_Barrier(MPI_COMM_WORLD);
+    double start_time = MPI_Wtime();
 
     // Этот буфер будет содержать полную матрицу на каждой итерации
     // Мы собираем её через Allgather, чтобы у каждого процесса были актуальные строки
@@ -117,9 +120,16 @@ int main(int argc, char** argv)
         0, MPI_COMM_WORLD
     );
 
+    // синхронизация после вычислений
+    MPI_Barrier(MPI_COMM_WORLD);
+    double end_time = MPI_Wtime();
+
     if (rank == 0) {
         std::cout << "N = " << N << "\n";
         std::cout << "MPI processes = " << size << "\n";
+            std::cout << "Execution time: "
+              << (end_time - start_time)
+              << " seconds\n";
 
         // Чтобы вывод не был огромным, печатаем матрицу только если N небольшое
         if (N <= 16) {
