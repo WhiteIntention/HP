@@ -1,3 +1,4 @@
+%%writefile 9_2.cpp
 #include <mpi.h>
 #include <iostream>
 #include <vector>
@@ -76,6 +77,12 @@ int main(int argc, char** argv)
     // Локальные куски: rows_per_proc строк матрицы и b
     std::vector<double> Alocal((size_t)rows_per_proc * (size_t)N, 0.0);
     std::vector<double> blocal((size_t)rows_per_proc, 0.0);
+
+    // Таймер (будем мерить основную часть: Scatter + прямой ход + Gather)
+    double start_time = 0.0;
+    double end_time = 0.0;
+    MPI_Barrier(MPI_COMM_WORLD);
+    start_time = MPI_Wtime();
 
     // Scatter строк матрицы (каждый процесс получает rows_per_proc * N элементов)
     MPI_Scatter(
@@ -160,6 +167,9 @@ int main(int argc, char** argv)
         rows_per_proc, MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
+    //конец таймера
+    MPI_Barrier(MPI_COMM_WORLD);
+    end_time = MPI_Wtime();
 
     if (rank == 0) {
         // Обратный ход на rank 0
@@ -191,7 +201,7 @@ int main(int argc, char** argv)
         std::cout << "N = " << N << "\n";
         std::cout << "MPI processes = " << size << "\n";
         std::cout << "Max abs error vs x_true = " << max_abs_err << "\n";
-
+        std::cout << "Execution time: " << (end_time - start_time) << " seconds\n";
         // Можно вывести первые несколько значений решения
         int show = std::min(N, 5);
         std::cout << "x[0.." << (show - 1) << "] = ";
