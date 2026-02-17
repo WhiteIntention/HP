@@ -1,0 +1,30 @@
+flowchart LR
+  %% ========== Site A ==========
+  subgraph A[Site A (платформа)]
+    U[Пользователь\n(через сайт)] -->|1) выбирает процедуру + параметры| UI[UI: Конструктор отчёта]
+
+    UI -->|2) сформировать отчёт| RE[Report Engine\n(расчёт данных)]
+    RE --> RDB[(Report DB)\nreport_id + data]
+
+    RDB -->|3) открыть настройки отправки| EP[Export Policy UI\n(можно/нельзя отправлять\n+ исключение полей)]
+    EP -->|сохранить policy| PDB[(Policy DB)\nreport_id:\n is_sendable,\n excluded_fields]
+
+    RDB -->|4) отправить| SEND[Send to Site B]
+    PDB --> SEND
+
+    SEND -->|5) собрать payload| PB[Payload Builder\n(очистка полей:\nexport_blocked + excluded_fields)]
+    PB -->|6) POST /reports/ingest\n(idempotency_key=report_id)| BAPI
+  end
+
+  %% ========== Site B ==========
+  subgraph B[Site B (приёмник)]
+    BAPI[API: /api/v1/reports/ingest\nвалидация + idempotency] --> VAL{Валидация\nschema_version,\nmode, поля}
+    VAL -->|ok| STORE[(Report Storage)\nlatest + history]
+    VAL -->|error| ERR[400/422\nошибка структуры/данных]
+
+    STORE --> VIEW[Витрина / отчёты / BI]
+  end
+
+  %% feedback
+  BAPI -->|7) ответ 200 OK\n(run accepted)| SEND
+  ERR -->|ответ с ошибкой| SEND
